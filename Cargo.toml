@@ -1,0 +1,6 @@
+[package]
+name = "ddc"
+version = "0.1.0"
+authors = ["Jeison Cardoso <cardoso.jeison@gmail.com>"]
+
+[dependencies]

@@ -1,5 +1,11 @@
-use std::io;
-use std::io::prelude::*;
+#[macro_use]
+extern crate serde_derive;
+extern crate docopt;
+
+#[macro_use]
+extern crate human_panic;
+
+use docopt::Docopt;
 
 fn is_leap_year(year: i32) -> bool {
 	(year%400 == 0) || (year%4 == 0 && year%100 != 0)
@@ -202,55 +208,41 @@ fn long_version(day: i32, month: i32, year: i32) -> String {
     output.push_str(&year.to_string());
     output.push_str(" e dia numero ");
     output.push_str(&days.to_string());
-
-	return output
-}
-
-fn header() {
-	println!("Entre com dia mes e ano (separados por enter) e precione ctrl-c");
-	println!("\n\tEntre com dia mes e ano (separados por espaco):");
-}
-
-fn read_user_input() -> String {
-    let reader = io::stdin();
-    let mut iterator = reader.lock().lines();
-    let text = iterator.next().unwrap().unwrap();
-    text
+    output
 }
 
 fn show_output(day: i32, month: i32, year: i32) {
-	println!("\n\tCalendario de Paciencia de LongVersion");
+	println!("\n\tCalendario de Paciencia de Frode");
 	println!("\t---------------------------------");
 	println!("{}",long_version(day, month, year));
 	println!("\n\tSimples -- {}", short_version(day, month, year));
 }
 
-struct SimpleDate {
-	day  : i32,
-	month: i32,
-	year : i32,
-}
+const USAGE: &str = "
+DiaDoCuringa
 
-fn clear_input(input: String) -> SimpleDate {
-	let new_input = str::replace(&input, "\n", " ");
-	let args: Vec<&str> = new_input.split_whitespace().collect();
-	if args.capacity() >= 3 {
-		let day = args[0].parse::<i32>().unwrap();
-		let month = args[1].parse::<i32>().unwrap();
-		let year = args[2].parse::<i32>().unwrap();
-		return SimpleDate{day, month, year}
-	}
-    else {
-        let day = 0;
-        let month = 0;
-        let year = 0;
-        return SimpleDate{day, month, year}
-    }
+O calendário de Frode
+Entre com dia mes e ano (separados por espaço)
+
+Usage:
+  ddc <dia> <mes> <ano>
+";
+
+#[derive(Debug, Deserialize)]
+struct Args {
+    arg_dia: Option<i32>,
+    arg_mes: Option<i32>,
+    arg_ano: Option<i32>,
 }
 
 fn main() {
-	header();
-	let input = read_user_input();
-	let clean_input: SimpleDate = clear_input(input);
-	show_output(clean_input.day, clean_input.month, clean_input.year);
+    setup_panic!();
+    let args: Args = Docopt::new(USAGE)
+        .and_then(|d| d.deserialize())
+        .unwrap_or_else(|e| e.exit());
+	let d = args.arg_dia.expect("Dia inválido");
+    let m = args.arg_mes.expect("Mes inválido");
+    let y = args.arg_ano.expect("Ano inválido");
+
+    show_output(d, m, y);
 }

@@ -20,3 +20,7 @@ cargo build
 ```
 cargo run
 ```
+
+## Lint
+rustup component add clippy-preview --toolchain=nightly
+cargo run --bin cargo-clippy

@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Jeison Cardoso <cardoso.jeison@gmail.com>"]
 
 [dependencies]
-docopt = "1.0.0"
+docopt = "1.0.2"
 serde = "1.0.70"
 serde_derive = "1.0.70"
 human-panic = "1.0.0"

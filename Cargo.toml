@@ -1,5 +1,5 @@
 [package]
-name = "ddc"
+name = "ddc_cli"
 version = "0.1.0"
 authors = ["Jeison Cardoso <cardoso.jeison@gmail.com>"]
 
@@ -8,3 +8,4 @@ docopt = "1.0.2"
 serde = "1.0.87"
 serde_derive = "1.0.87"
 human-panic = "1.0.0"
+ddc = { path = "ddc" }

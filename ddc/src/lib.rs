@@ -1,10 +1,11 @@
+use chrono::{NaiveDate, Datelike, Duration};
 
 fn is_leap_year(year: i32) -> bool {
 	(year%400 == 0) || (year%4 == 0 && year%100 != 0)
 }
 
-fn fix_day(year: i32, day: i32) -> i32 {
-	let leap: i32 = is_leap_year(year) as i32;
+fn fix_day(year: i32, day: u32) -> u32 {
+	let leap: u32 = is_leap_year(year) as u32;
 	if day > 60 - leap {
 		return day - 60
 	}
@@ -26,15 +27,26 @@ fn card_year(year: i32) -> usize {
 	(fix_year(year) % 13) as usize
 }
 
-fn leap_year_int(year: i32) -> i32 {
+fn leap_year_int(year: i32) -> u32 {
 	if is_leap_year(year) {
 		return 1
 	}
 	0
 }
 
-fn seasons(day: i32, year: i32) -> usize {
-	let leap: i32 = leap_year_int(year);
+fn subtract_364_days(day: u32, month: u32, year: i32) -> i32 {
+    let mut d: Option<NaiveDate> = NaiveDate::from_ymd_opt(year, month, day);
+		if d.is_some() {
+			d = d.map(|x| x - Duration::days(364));
+			if d.is_some() {
+				return d.unwrap().year() as i32
+			}
+		}
+		return 0
+}
+
+fn seasons(day: u32, month: u32, year: i32) -> usize {
+	let leap: u32 = leap_year_int(subtract_364_days(day, month, year)) as u32;
 	if day <= (62 - leap) {
 		return 1 as usize
 	}
@@ -53,37 +65,37 @@ fn seasons(day: i32, year: i32) -> usize {
 	1
 }
 
-fn card_month(day: i32) -> usize {
+fn card_month(day: u32) -> usize {
 	((day / 28) % 13) as usize
 }
 
-fn suit_week(day: i32) -> usize {
+fn suit_week(day: u32) -> usize {
 	(((day / 7) / 13) % 4) as usize
 }
 
-fn card_week(day: i32) -> usize {
+fn card_week(day: u32) -> usize {
 	((day / 7) % 13) as usize
 }
 
-fn suit_day(day: i32) -> usize {
+fn suit_day(day: u32) -> usize {
 	if day == 0 {
 		return 4
 	}
 	(((day - 1) / 13) % 4) as usize
 }
 
-fn card_day(day: i32) -> usize {
+fn card_day(day: u32) -> usize {
 	if day == 0 {
 		return 13
 	}
 	((day - 1) % 13) as usize
 }
 
-fn feb(day: i32, year: i32) -> bool {
+fn feb(day: u32, year: i32) -> bool {
 	day <= (28 + leap_year_int(year))
 }
 
-fn valid_date(day: i32, month: i32, year: i32) -> bool {
+fn valid_date(day: u32, month: u32, year: i32) -> bool {
 	if day < 1 || day > 31 || year == 0 || month < 1 || month > 12 {
 		return false
 	}
@@ -99,15 +111,15 @@ fn valid_date(day: i32, month: i32, year: i32) -> bool {
 	false
 }
 
-fn day_of_year(day: i32, month: i32, year: i32) -> i32 {
+fn day_of_year(day: u32, month: u32, year: i32) -> u32 {
 	if !valid_date(day, month, year) {
 		return 0
 	}
 	count_days(day, month, year)
 }
 
-fn count_days(day: i32, month: i32, year: i32) -> i32 {
-	let leap: i32 = leap_year_int(year) as i32;
+fn count_days(day: u32, month: u32, year: i32) -> u32 {
+	let leap: u32 = leap_year_int(year) as u32;
 	if  month == 1 {
 		return day
     }
@@ -148,27 +160,27 @@ fn count_days(day: i32, month: i32, year: i32) -> i32 {
 }
 
 //ShortVersion return abbr version of the frode calendar like 1O1O1P2P
-pub fn short_version(day: i32, month: i32, year: i32) -> String {
+pub fn short_version(day: u32, month: u32, year: i32) -> String {
 	if !valid_date(day, month, year) {
 		return String::from("");
 	}
 
 	let cards = vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "Jo", "Jd"];
 	let suits = vec!['O', 'P', 'C', 'E', '_'];
-	let days: i32 = fix_day(year, day_of_year(day, month, year));
+	let days: u32 = fix_day(year, day_of_year(day, month, year));
 	let mut output = cards[card_day(days)].to_owned();
     output.push(suits[suit_day(days)]);
 	output.push_str(cards[card_week(days)]);
     output.push(suits[suit_week(days)]);
 	output.push_str(cards[card_month(days)]);
-    output.push(suits[seasons(day, year)]);
+    output.push(suits[seasons(day, month, year)]);
 	output.push_str(cards[card_year(year)]);
     output.push(suits[suit_year(year)]);
     output
 }
 
 //LongVersion return long version of the frode calendar portuguese language
-pub fn long_version(day: i32, month: i32, year: i32) -> String {
+pub fn long_version(day: u32, month: u32, year: i32) -> String {
 	if !valid_date(day, month, year) {
 		return "".to_string()
 	}
@@ -188,7 +200,7 @@ pub fn long_version(day: i32, month: i32, year: i32) -> String {
 	output.push_str("\n\tMes ");
     output.push_str(cards[card_month(days)]);
     output.push_str(" estacao");
-    output.push_str(suites[seasons(day, year)]);
+    output.push_str(suites[seasons(day, month, year)]);
 	output.push_str("\n\tAno ");
     output.push_str(cards[card_year(year)]);
     output.push_str(suites[suit_year(year)]);

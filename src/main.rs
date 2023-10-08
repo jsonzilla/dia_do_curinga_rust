@@ -10,7 +10,7 @@ use docopt::Docopt;
 
 use ddc::{long_version, short_version};
 
-fn show_output(day: i32, month: i32, year: i32) {
+fn show_output(day: u32, month: u32, year: i32) {
 	println!("\n\tCalendario de Paciencia de Frode");
 	println!("\t---------------------------------");
 	println!("{}",long_version(day, month, year));
@@ -29,8 +29,8 @@ Usage:
 
 #[derive(Debug, Deserialize)]
 struct Args {
-    arg_dia: Option<i32>,
-    arg_mes: Option<i32>,
+    arg_dia: Option<u32>,
+    arg_mes: Option<u32>,
     arg_ano: Option<i32>,
 }
 

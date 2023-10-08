@@ -133,13 +133,12 @@ fn leap_year_int(year: i32) -> u32 {
 	0
 }
 
-fn subtract_364_days(date: NaiveDate) -> i32 {
-	let d = date - Duration::days(364);
-	d.year() as i32
+fn fix_season(date: NaiveDate) -> i32 {
+	(date - Duration::days(364)).year()
 }
 
 fn seasons(date: NaiveDate) -> usize {
-	let leap: u32 = leap_year_int(subtract_364_days(date)) as u32;
+	let leap: u32 = leap_year_int(fix_season(date)) as u32;
 	if date.day() <= (62 - leap) {
 		return 1 as usize
 	}
@@ -184,52 +183,6 @@ fn card_day(day: u32) -> usize {
 	((day - 1) % 13) as usize
 }
 
-fn day_of_year(date: NaiveDate) -> u32 {
-	count_days(date.day(), date.month(), date.year())
-}
-
-fn count_days(day: u32, month: u32, year: i32) -> u32 {
-	let leap: u32 = leap_year_int(year) as u32;
-	if  month == 1 {
-		return day
-    }
-	else if  month == 2 {
-		return day + 31
-    }
-	else if  month == 3 {
-		return day + 59 + leap
-    }
-	else if  month == 4 {
-		return day + 90 + leap
-    }
-	else if  month == 5 {
-		return day + 120 + leap
-    }
-	else if  month == 6 {
-		return day + 151 + leap
-    }
-	else if  month == 7 {
-		return day + 181 + leap
-    }
-	else if  month == 8 {
-		return day + 212 + leap
-    }
-	else if  month == 9 {
-		return day + 243 + leap
-    }
-	else if  month == 10 {
-		return day + 273 + leap
-    }
-	else if  month == 11 {
-		return day + 304 + leap
-    }
-	else if  month == 12 {
-		return day + 334 + leap
-    }
-    0
-}
-
-
 pub fn short_version(day: u32, month: u32, year: i32) -> String {
 	let d: Option<NaiveDate> = NaiveDate::from_ymd_opt(year, month, day);
 	if d.is_none() {
@@ -237,13 +190,10 @@ pub fn short_version(day: u32, month: u32, year: i32) -> String {
 	}
 
 	let date = d.unwrap();
-	let days = fix_day(year, day_of_year(date));
+	let days = fix_day(year, date.ordinal());
 
 	Card::from(card_day(days), suit_day(days)).to_string() +
 		&Card::from(card_week(days), suit_week(days)).to_string() +
 		&Card::from(card_month(days), seasons(date)).to_string() +
 		&Card::from(card_year(year), suit_year(year)).to_string()
 }
-
-
-

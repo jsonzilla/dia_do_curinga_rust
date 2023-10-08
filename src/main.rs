@@ -8,24 +8,23 @@ extern crate human_panic;
 
 use docopt::Docopt;
 
-use ddc::{long_version, short_version};
+use ddc::short_version;
 
 fn show_output(day: u32, month: u32, year: i32) {
-	println!("\n\tCalendario de Paciencia de Frode");
+	println!("\n\tFrode calendar converter");
 	println!("\t---------------------------------");
-	println!("{}",long_version(day, month, year));
-	println!("\n\tSimples -- {}", short_version(day, month, year));
+	println!("{}",short_version(day, month, year));
 }
 
-const USAGE: &str = "
+const USAGE: &str = r#"
 DiaDoCuringa
 
-O calendário de Frode
+Enter with day month and year (separated by space)
 Entre com dia mes e ano (separados por espaço)
 
 Usage:
   ddc <dia> <mes> <ano>
-";
+"#;
 
 #[derive(Debug, Deserialize)]
 struct Args {
@@ -39,9 +38,9 @@ fn main() {
     let args: Args = Docopt::new(USAGE)
         .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
-	let d = args.arg_dia.expect("Dia inválido");
-    let m = args.arg_mes.expect("Mes inválido");
-    let y = args.arg_ano.expect("Ano inválido");
+	let d = args.arg_dia.expect("Invalid day");
+    let m = args.arg_mes.expect("Invalid month");
+    let y = args.arg_ano.expect("Invalid year");
 
     show_output(d, m, y);
 }

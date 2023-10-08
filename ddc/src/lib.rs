@@ -1,5 +1,104 @@
 use chrono::{NaiveDate, Datelike, Duration};
 
+enum Suit { Diamonds,	Clubs, Hearts, Spades }
+enum CardNumber { One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King }
+enum Joker { Single, Double }
+enum Card {	CardNumber(CardNumber, Suit), Joker(Joker), }
+
+impl CardNumber {
+	fn from(card: usize) -> CardNumber {
+		match card {
+			0 => CardNumber::One,
+			1 => CardNumber::Two,
+			2 => CardNumber::Three,
+			3 => CardNumber::Four,
+			4 => CardNumber::Five,
+			5 => CardNumber::Six,
+			6 => CardNumber::Seven,
+			7 => CardNumber::Eight,
+			8 => CardNumber::Nine,
+			9 => CardNumber::Ten,
+			10 => CardNumber::Jack,
+			11 => CardNumber::Queen,
+			12 => CardNumber::King,
+			_ => panic!("Invalid card number"),
+		}
+	}
+
+	fn to_string(&self) -> &'static str {
+		match *self {
+			CardNumber::One => "1",
+			CardNumber::Two => "2",
+			CardNumber::Three => "3",
+			CardNumber::Four => "4",
+			CardNumber::Five => "5",
+			CardNumber::Six => "6",
+			CardNumber::Seven => "7",
+			CardNumber::Eight => "8",
+			CardNumber::Nine => "9",
+			CardNumber::Ten => "10",
+			CardNumber::Jack => "J",
+			CardNumber::Queen => "Q",
+			CardNumber::King => "K",
+		}
+	}
+}
+
+impl Suit {
+	fn from(suit: usize) -> Suit {
+		match suit {
+			0 => Suit::Diamonds,
+			1 => Suit::Clubs,
+			2 => Suit::Hearts,
+			3 => Suit::Spades,
+			_ => panic!("Invalid suit"),
+		}
+	}
+
+	fn to_string(&self) -> &'static str {
+		match *self {
+			Suit::Diamonds => "D",
+			Suit::Clubs => "C",
+			Suit::Hearts => "H",
+			Suit::Spades => "S",
+		}
+	}
+}
+
+impl Joker {
+	fn from(joker: usize) -> Joker {
+		match joker {
+			13 => Joker::Single,
+			14 => Joker::Double,
+			_ => panic!("Invalid joker"),
+		}
+	}
+
+	fn to_string(&self) -> &'static str {
+		match *self {
+			Joker::Single => "Jo",
+			Joker::Double => "Jd",
+		}
+	}
+}
+
+impl Card {
+	fn from(card: usize, suit: usize) -> Card {
+		match card {
+			0..=12 => Card::CardNumber(CardNumber::from(card), Suit::from(suit)),
+			13..=14 => Card::Joker(Joker::from(card)),
+			_ => panic!("Invalid card"),
+		}
+	}
+
+	fn to_string(&self) -> String {
+		match *self {
+			Card::CardNumber(ref card, ref suit) => format!("{}{}", card.to_string(), suit.to_string()),
+			Card::Joker(ref joker) => format!("{}", joker.to_string()),
+		}
+	}
+}
+
 fn is_leap_year(year: i32) -> bool {
 	(year%400 == 0) || (year%4 == 0 && year%100 != 0)
 }
@@ -34,32 +133,26 @@ fn leap_year_int(year: i32) -> u32 {
 	0
 }
 
-fn subtract_364_days(day: u32, month: u32, year: i32) -> i32 {
-    let mut d: Option<NaiveDate> = NaiveDate::from_ymd_opt(year, month, day);
-		if d.is_some() {
-			d = d.map(|x| x - Duration::days(364));
-			if d.is_some() {
-				return d.unwrap().year() as i32
-			}
-		}
-		return 0
+fn subtract_364_days(date: NaiveDate) -> i32 {
+	let d = date - Duration::days(364);
+	d.year() as i32
 }
 
-fn seasons(day: u32, month: u32, year: i32) -> usize {
-	let leap: u32 = leap_year_int(subtract_364_days(day, month, year)) as u32;
-	if day <= (62 - leap) {
+fn seasons(date: NaiveDate) -> usize {
+	let leap: u32 = leap_year_int(subtract_364_days(date)) as u32;
+	if date.day() <= (62 - leap) {
 		return 1 as usize
 	}
-	if day <= (154 - leap) {
+	if date.day() <= (154 - leap) {
 		return 2 as usize
 	}
-	if day <= (247 - leap) {
+	if date.day() <= (247 - leap) {
 		return 3 as usize
 	}
-	if day <= (338 - leap) {
+	if date.day() <= (338 - leap) {
 		return 0 as usize
 	}
-	if day <= (367 - leap) {
+	if date.day() <= (367 - leap) {
 		return 1 as usize
 	}
 	1
@@ -91,31 +184,8 @@ fn card_day(day: u32) -> usize {
 	((day - 1) % 13) as usize
 }
 
-fn feb(day: u32, year: i32) -> bool {
-	day <= (28 + leap_year_int(year))
-}
-
-fn valid_date(day: u32, month: u32, year: i32) -> bool {
-	if day < 1 || day > 31 || year == 0 || month < 1 || month > 12 {
-		return false
-	}
-	if (month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12) && day <= 31 {
-		return true
-	}
-	if (month == 4 || month == 6 || month == 9 || month == 11) && day <= 30 {
-		return true
-	}
-	if month == 2 {
-		return feb(day, year)
-	}
-	false
-}
-
-fn day_of_year(day: u32, month: u32, year: i32) -> u32 {
-	if !valid_date(day, month, year) {
-		return 0
-	}
-	count_days(day, month, year)
+fn day_of_year(date: NaiveDate) -> u32 {
+	count_days(date.day(), date.month(), date.year())
 }
 
 fn count_days(day: u32, month: u32, year: i32) -> u32 {
@@ -159,59 +229,21 @@ fn count_days(day: u32, month: u32, year: i32) -> u32 {
     0
 }
 
-//ShortVersion return abbr version of the frode calendar like 1O1O1P2P
+
 pub fn short_version(day: u32, month: u32, year: i32) -> String {
-	if !valid_date(day, month, year) {
+	let d: Option<NaiveDate> = NaiveDate::from_ymd_opt(year, month, day);
+	if d.is_none() {
 		return String::from("");
 	}
 
-	let cards = vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "Jo", "Jd"];
-	let suits = vec!['O', 'P', 'C', 'E', '_'];
-	let days: u32 = fix_day(year, day_of_year(day, month, year));
-	let mut output = cards[card_day(days)].to_owned();
-    output.push(suits[suit_day(days)]);
-	output.push_str(cards[card_week(days)]);
-    output.push(suits[suit_week(days)]);
-	output.push_str(cards[card_month(days)]);
-    output.push(suits[seasons(day, month, year)]);
-	output.push_str(cards[card_year(year)]);
-    output.push(suits[suit_year(year)]);
-    output
+	let date = d.unwrap();
+	let days = fix_day(year, day_of_year(date));
+
+	Card::from(card_day(days), suit_day(days)).to_string() +
+		&Card::from(card_week(days), suit_week(days)).to_string() +
+		&Card::from(card_month(days), seasons(date)).to_string() +
+		&Card::from(card_year(year), suit_year(year)).to_string()
 }
 
-//LongVersion return long version of the frode calendar portuguese language
-pub fn long_version(day: u32, month: u32, year: i32) -> String {
-	if !valid_date(day, month, year) {
-		return "".to_string()
-	}
 
-	let cards = vec!["As", "Dois", "Tres", "Quatro", "Cinco", "Seis", "Sete", "Oito", "Nove", "Dez",
-		            "Valete", "Dama", "Rei", "do Curinga"];
-	let suites = vec![" de ouros", " de paus", " de copas", " de espadas"];
-
-	let days = fix_day(year, day_of_year(day, month, year));
-
-	let mut output: String = "\n\tDia ".to_string();
-    output.push_str(cards[card_day(days)]);
-    output.push_str(suites[suit_day(days)]);
-	output.push_str("\n\tSemana ");
-    output.push_str(cards[card_week(days)]);
-    output.push_str(suites[suit_week(days)]);
-	output.push_str("\n\tMes ");
-    output.push_str(cards[card_month(days)]);
-    output.push_str(" estacao");
-    output.push_str(suites[seasons(day, month, year)]);
-	output.push_str("\n\tAno ");
-    output.push_str(cards[card_year(year)]);
-    output.push_str(suites[suit_year(year)]);
-	output.push_str("\n\t");
-    output.push_str(&day.to_string());
-    output.push_str("/");
-    output.push_str(&month.to_string());
-    output.push_str("/");
-    output.push_str(&year.to_string());
-    output.push_str(" e dia numero ");
-    output.push_str(&days.to_string());
-    output
-}
 

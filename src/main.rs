@@ -23,6 +23,7 @@ Enter with day month and year (separated by space)
 Entre com dia mes e ano (separados por espaço)
 
 Usage:
+  ddc <day> <month> <year>
   ddc <dia> <mes> <ano>
 "#;
 

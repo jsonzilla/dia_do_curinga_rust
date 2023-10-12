@@ -17,4 +17,11 @@ fn test_new_short_version() {
     assert_eq!(short_version(1, 3, 2013), "1D1D1C3C");
     assert_eq!(short_version(28, 2, 2014), "KS1D1C4C");
     assert_eq!(short_version(1, 3, 2014), "1D1D1C4C");
+    assert_eq!(short_version(28, 2, 2015), "KS1D1C5C");
+}
+
+#[test]
+fn test_invalid_date() {
+    assert_eq!(short_version(29, 2, 2015), "Invalid date");
+    assert_eq!(short_version(30, 22, 2015), "Invalid date");
 }

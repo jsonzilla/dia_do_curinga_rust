@@ -176,10 +176,10 @@ impl DDCDate {
     }
 
     fn fix_year(year: i32) -> i32 {
-        if year < 1790 {
-            return 1790 - year;
-        }
-        year - 1790
+				match year {
+					1791..=9999 => year - 1790,
+					_ => 1790 - year
+				}
     }
 
     fn suit_year(year: i32) -> usize {
@@ -190,35 +190,29 @@ impl DDCDate {
         (Self::fix_year(year) % 13) as usize
     }
 
-    fn leap_year_int(year: i32) -> u32 {
-        if Self::is_leap_year(year) {
-            return 1;
-        }
-        0
-    }
-
     fn fix_season(date: NaiveDate) -> i32 {
         (date - Duration::days(364)).year()
     }
 
     fn seasons(date: NaiveDate) -> usize {
-        let leap: u32 = Self::leap_year_int(Self::fix_season(date)) as u32;
-        if date.day() <= (62 - leap) {
-            return 1 as usize;
-        }
-        if date.day() <= (154 - leap) {
-            return 2 as usize;
-        }
-        if date.day() <= (247 - leap) {
-            return 3 as usize;
-        }
-        if date.day() <= (338 - leap) {
-            return 0 as usize;
-        }
-        if date.day() <= (367 - leap) {
-            return 1 as usize;
-        }
-        1
+				if Self::is_leap_year(Self::fix_season(date)) {
+					return match date.day() {
+							1..=62 => 1 as usize,
+							63..=154 => 2 as usize,
+							155..=247 => 3 as usize,
+							248..=338 => 0 as usize,
+							339..=367 => 1 as usize,
+							_ => 1,
+						}
+				}
+				match date.day() {
+					1..=61 => 1 as usize,
+					62..=153 => 2 as usize,
+					154..=246 => 3 as usize,
+					247..=337 => 0 as usize,
+					338..=366 => 1 as usize,
+					_ => 1,
+				}
     }
 
     fn card_month(day: u32) -> usize {
@@ -234,17 +228,17 @@ impl DDCDate {
     }
 
     fn suit_day(day: u32) -> usize {
-        if day == 0 {
-            return 4;
-        }
-        (((day - 1) / 13) % 4) as usize
+				match day {
+					0 => 4,
+					_ => (((day - 1) / 13) % 4) as usize
+				}
     }
 
     fn card_day(day: u32) -> usize {
-        if day == 0 {
-            return 13;
-        }
-        ((day - 1) % 13) as usize
+				match day {
+					0 => 13,
+					_ => ((day - 1) % 13) as usize
+				}
     }
 }
 

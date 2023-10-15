@@ -1,7 +1,9 @@
 use chrono::{Datelike, Duration, NaiveDate};
+use std::fmt;
 
+#[derive(Debug)]
 enum CardNumber {
-    One,
+    Ace,
     Two,
     Three,
     Four,
@@ -19,7 +21,7 @@ enum CardNumber {
 impl CardNumber {
     fn from(card: usize) -> CardNumber {
         match card {
-            0 => CardNumber::One,
+            0 => CardNumber::Ace,
             1 => CardNumber::Two,
             2 => CardNumber::Three,
             3 => CardNumber::Four,
@@ -35,26 +37,29 @@ impl CardNumber {
             _ => panic!("Invalid card number"),
         }
     }
+}
 
-    fn to_string(&self) -> &'static str {
-        match *self {
-            CardNumber::One => "1",
-            CardNumber::Two => "2",
-            CardNumber::Three => "3",
-            CardNumber::Four => "4",
-            CardNumber::Five => "5",
-            CardNumber::Six => "6",
-            CardNumber::Seven => "7",
-            CardNumber::Eight => "8",
-            CardNumber::Nine => "9",
-            CardNumber::Ten => "10",
-            CardNumber::Jack => "J",
-            CardNumber::Queen => "Q",
-            CardNumber::King => "K",
+impl fmt::Display for CardNumber {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CardNumber::Ace => write!(f, "A"),
+            CardNumber::Two => write!(f, "2"),
+            CardNumber::Three => write!(f, "3"),
+            CardNumber::Four => write!(f, "4"),
+            CardNumber::Five => write!(f, "5"),
+            CardNumber::Six => write!(f, "6"),
+            CardNumber::Seven => write!(f, "7"),
+            CardNumber::Eight => write!(f, "8"),
+            CardNumber::Nine => write!(f, "9"),
+            CardNumber::Ten => write!(f, "10"),
+            CardNumber::Jack => write!(f, "J"),
+            CardNumber::Queen => write!(f, "Q"),
+            CardNumber::King => write!(f, "K"),
         }
     }
 }
 
+#[derive(Debug)]
 enum Suit {
     Diamonds,
     Clubs,
@@ -72,16 +77,20 @@ impl Suit {
             _ => panic!("Invalid suit"),
         }
     }
+}
 
-    fn to_string(&self) -> &'static str {
-        match *self {
-            Suit::Diamonds => "D",
-            Suit::Clubs => "C",
-            Suit::Hearts => "H",
-            Suit::Spades => "S",
+impl fmt::Display for Suit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Suit::Diamonds => write!(f, "♦"),
+            Suit::Clubs => write!(f, "♣"),
+            Suit::Hearts => write!(f, "♥"),
+            Suit::Spades => write!(f, "♠"),
         }
     }
 }
+
+#[derive(Debug)]
 enum Joker {
     Single,
     Double,
@@ -95,15 +104,18 @@ impl Joker {
             _ => panic!("Invalid joker"),
         }
     }
+}
 
-    fn to_string(&self) -> &'static str {
-        match *self {
-            Joker::Single => "Jo",
-            Joker::Double => "Jd",
+impl fmt::Display for Joker {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Joker::Single => write!(f, "Jo"),
+            Joker::Double => write!(f, "Jd"),
         }
     }
 }
 
+#[derive(Debug)]
 enum Card {
     CardNumber(CardNumber, Suit),
     Joker(Joker),
@@ -117,17 +129,18 @@ impl Card {
             _ => panic!("Invalid card"),
         }
     }
+}
 
-    fn to_string(&self) -> String {
+impl fmt::Display for Card {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Card::CardNumber(ref card, ref suit) => {
-                format!("{}{}", card.to_string(), suit.to_string())
-            }
-            Card::Joker(ref joker) => format!("{}", joker.to_string()),
+            Card::CardNumber(ref card, ref suit) => write!(f, "{}{}", card.to_string(), suit.to_string()),
+            Card::Joker(ref joker) => write!(f, "{}", joker.to_string()),
         }
     }
 }
 
+#[derive(Debug)]
 struct DDCDate {
     day: Card,
     week: Card,
@@ -153,16 +166,6 @@ impl DDCDate {
         })
     }
 
-    fn to_string(&self) -> String {
-        format!(
-            "{}{}{}{}",
-            self.day.to_string(),
-            self.week.to_string(),
-            self.month.to_string(),
-            self.year.to_string()
-        )
-    }
-
     fn is_leap_year(year: i32) -> bool {
         (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0)
     }
@@ -176,10 +179,10 @@ impl DDCDate {
     }
 
     fn fix_year(year: i32) -> i32 {
-				match year {
-					1791..=9999 => year - 1790,
-					_ => 1790 - year
-				}
+        match year {
+            1791..=9999 => year - 1790,
+            _ => 1790 - year,
+        }
     }
 
     fn suit_year(year: i32) -> usize {
@@ -190,29 +193,23 @@ impl DDCDate {
         (Self::fix_year(year) % 13) as usize
     }
 
-    fn fix_season(date: NaiveDate) -> i32 {
-        (date - Duration::days(364)).year()
-    }
-
     fn seasons(date: NaiveDate) -> usize {
-				if Self::is_leap_year(Self::fix_season(date)) {
-					return match date.day() {
-							1..=62 => 1 as usize,
-							63..=154 => 2 as usize,
-							155..=247 => 3 as usize,
-							248..=338 => 0 as usize,
-							339..=367 => 1 as usize,
-							_ => 1,
-						}
-				}
-				match date.day() {
-					1..=61 => 1 as usize,
-					62..=153 => 2 as usize,
-					154..=246 => 3 as usize,
-					247..=337 => 0 as usize,
-					338..=366 => 1 as usize,
-					_ => 1,
-				}
+        let fix_season = (date - Duration::days(364)).year();
+        let leap = Self::is_leap_year(fix_season);
+        let season = match date.day() {
+            1..=62 if leap => 1,
+            1..=61 => 1,
+            63..=154 if leap => 2,
+            62..=153 => 2,
+            155..=247 if leap => 3,
+            154..=246 => 3,
+            248..=338 if leap => 0,
+            247..=337 => 0,
+            339..=367 if leap => 1,
+            338..=366 => 1,
+            _ => 1,
+        };
+        season
     }
 
     fn card_month(day: u32) -> usize {
@@ -228,17 +225,31 @@ impl DDCDate {
     }
 
     fn suit_day(day: u32) -> usize {
-				match day {
-					0 => 4,
-					_ => (((day - 1) / 13) % 4) as usize
-				}
+        match day {
+            0 => 4,
+            _ => (((day - 1) / 13) % 4) as usize,
+        }
     }
 
     fn card_day(day: u32) -> usize {
-				match day {
-					0 => 13,
-					_ => ((day - 1) % 13) as usize
-				}
+        match day {
+            0 => 13,
+            _ => ((day - 1) % 13) as usize,
+        }
+    }
+}
+
+
+impl fmt::Display for DDCDate {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}{}{}{}",
+            self.day.to_string(),
+            self.week.to_string(),
+            self.month.to_string(),
+            self.year.to_string()
+        )
     }
 }
 
